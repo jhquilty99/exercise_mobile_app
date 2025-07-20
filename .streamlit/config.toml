@@ -1,0 +1,16 @@
+[theme]
+# Primary color - professional red
+primaryColor = "#DC2626"
+
+# Background colors - white theme
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F8F9FA"
+
+# Text colors
+textColor = "#1F2937"
+
+# Font configuration
+font = "sans serif"
+
+# Additional theme colors for consistency
+base = "light" 
