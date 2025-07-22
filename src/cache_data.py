@@ -1,7 +1,6 @@
 import streamlit as st
 from backend.extraction import GoogleSheetsExtractor
-from backend.summary_statistics import calculate_total_rows, calculate_distinct_dates
-from frontend.layout import create_dashboard_layout
+from backend.transformation import clean_workout_data
 import logging
 
 # Configure logging
@@ -28,21 +27,21 @@ def load_workout_data():
             logger.info("Connection successful!")
             
             # Extract data
-            df, stats = extractor.extract_data(
+            df, extraction_stats = extractor.extract_data(
                 spreadsheet_id=spreadsheet_id,
                 sheet_name=sheet_name,
                 range_name=range_name
             )
-            
-            logger.info(f"Extracted {len(df)} records")
-            logger.info(f"Stats: {stats}")
-            
-            total_exercises = calculate_total_rows(df)
-            total_workouts = calculate_distinct_dates(df)
 
-            return df, stats, total_exercises, total_workouts
+            df, validation_stats = clean_workout_data(df)
+
+            logger.info(f"Extracted {len(df)} records")
+            logger.info(f"Stats: {extraction_stats}")
+            logger.info(f"Stats: {validation_stats}")
+            
+            return df
             
     except Exception as e:
         logger.error(f"Error: {e}")
         st.error(f"Failed to load data: {e}")
-        return None, None, None, None
+        return None

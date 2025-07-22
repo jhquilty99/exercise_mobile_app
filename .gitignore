@@ -1,1 +1,5 @@
 google_sheets_service_account.json
+*/__pycache__/*
+*/.vscode/*
+*/.git/*
+*.pyc

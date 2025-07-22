@@ -8,10 +8,10 @@ logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     # Load data (cached)
-    df, stats, total_exercises, total_workouts = load_workout_data()
+    df = load_workout_data()
     
     if df is not None:        
         # Create dashboard
-        create_dashboard_layout(total_workouts, total_exercises)
+        create_dashboard_layout(df)
     else:
         st.error("Unable to load workout data. Please check your connection and try again.")

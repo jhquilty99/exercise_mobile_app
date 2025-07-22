@@ -5,12 +5,12 @@
 
 **Acceptance Criteria:**
 - [X] Validate required fields 
-- [ ] Enforce proper data types
-- [ ] Enforce data constraints (non-negative weights, sets, reps)
-- [ ] Identify and handle missing/duplicate values
+- [X] Enforce proper data types
+- [X] Enforce data constraints (non-negative weights, sets, reps)
+- [X] Identify and handle missing/duplicate values
 - [X] Remove invalid records
-- [ ] Normalize exercise names (case-insensitive)
-- [ ] Convert data to standardized WorkoutLog schema
+- [X] Validate exercise names (case-insensitive)
+- [X] Convert data to standardized WorkoutLog schema
 
 **Technical Requirements:**
 - Implement validation rules:
@@ -32,11 +32,25 @@
     'sets': int,
     'discrete_reps': int,
     'alternating': bool,
-    'total_volume': int  # calculated field
 }
 ```
 
 **Implementation:**
+
 GoogleSheetsExtractor in extraction.py with methods:
 - _validate_sheet_structure
 - _clean_and_validate_data
+
+WorkoutDataValidator in transformation.py with methods:
+- validate_dataframe
+- clean_and_validate_data
+- _validate_required_fields
+- _validate_data_types
+- _validate_data_constraints
+- _validate_missing_duplicate_values
+- _validate_exercise_names
+- _convert_to_standardized_schema
+
+Functions in transformation.py:
+- validate_workout_data
+- clean_workout_data

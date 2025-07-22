@@ -1,10 +1,11 @@
 import streamlit as st
-from .overview import render_overview_page
-from .weight_progress import render_weight_progress_page
-from .workout_volume import render_workout_volume_page
-from .summary_metrics import render_summary_metrics_page
+from frontend.overview import render_overview_page
+from frontend.all_exercise import render_all_exercise_analysis_page
+from frontend.workout import render_workout_analysis_page
+#from frontend.specific_exercise_tab.specific_exercise import render_weight_progress_page
+#from frontend.all_exercises_tab.all_exercises import render_summary_metrics_page
 
-def create_dashboard_layout(total_workouts, total_exercises):
+def create_dashboard_layout(df):
     """
     Creates the main dashboard layout with title, subtitle, and sidebar navigation.
     Implements FE-003: Application Layout and Navigation
@@ -29,29 +30,21 @@ def create_dashboard_layout(total_workouts, total_exercises):
     with st.sidebar:
         page = st.radio(
             "Choose a section:",
-            ["Overview", "Weight Progress", "Workout Volume", "Summary Metrics"]
+            ["Overview", "All Exercise Analysis", "Workout Analysis"]
         )
     
     # Display content based on selected page
     if page == "Overview":
-        render_overview_page(total_workouts, total_exercises)
+        render_overview_page(df)
         
-    elif page == "Weight Progress":
-        render_weight_progress_page()
+    elif page == "All Exercise Analysis":
+        render_all_exercise_analysis_page(df)
         
-    elif page == "Workout Volume":
-        render_workout_volume_page()
+    elif page == "Workout Analysis":
+        render_workout_analysis_page(df)
         
-    elif page == "Summary Metrics":
-        render_summary_metrics_page()
-
-def main():
-    """
-    Main function to run the dashboard
-    """
-    total_workouts = 100
-    total_exercises = 1000
-    create_dashboard_layout(total_workouts, total_exercises)
-
-if __name__ == "__main__":
-    main()
+    #elif page == "Specific Exercise":
+    #    render_weight_progress_page(df)
+        
+    #elif page == "All Exercises":
+    #    render_summary_metrics_page(df)

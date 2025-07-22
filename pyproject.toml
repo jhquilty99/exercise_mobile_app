@@ -10,4 +10,5 @@ dependencies = [
     "gspread>=6.2.1",
     "pandas>=2.3.1",
     "streamlit>=1.47.0",
+    "plotly>=5.17.0",
 ]
