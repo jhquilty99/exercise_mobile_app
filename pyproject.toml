@@ -12,3 +12,10 @@ dependencies = [
     "streamlit>=1.47.0",
     "plotly>=5.17.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["src/backend/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = ["--cov=src/backend", "--cov-report=html:htmlcov"]

@@ -17,6 +17,8 @@ Step-by-Step Documentation
 16. Asked agent to implement FE-12. Realized dataframe should be cached and then analytics, dependent on the filters in the application, could be built in real time. Changed the signatures of the functions to make sure dataframe is the only thing cached. 
 17. Updated BE-04 to accommodate the requirements in FE-15 and implemented both. Scrapped old BE-04 implementation and started from scratch.
 18. Implemented FE-13 and it created its own backend functions, so moved those to the backend folder. Rewrote BE-03 to make clear requirements for these backend functions (used agent to populate requirements from implemented functionality as starting point).  
+19. Implemented BE-06 by asking agent to pull out the filtering functionality from overview_statistics into its own file. Asked agent to utilize this filter function in all applicable analyses. 
+19. Add test cases for all backend functions, 
 
 ## Backend Tickets
 
@@ -27,7 +29,6 @@ Step-by-Step Documentation
 ### Data Transformation
 - [ ] **BE-003: Exercise Performance Analytics** - Calculate comprehensive exercise performance metrics including weight progression and workout volume for strength gains and training intensity insights
 - [X] **BE-004: Exercise Frequency Analytics** - Analyze exercise frequency and preferences to provide insights into workout patterns and exercise rankings
-- [ ] **BE-005: Derived Metrics Calculation** - Calculate derived metrics from raw workout data including total volume, rolling frequency, and progress indicators
 - [ ] **BE-006: Comprehensive Data Filtering System** - Provide filtered workout data by exercise criteria and date ranges to support interactive filtering and time-based analysis
 
 ## Frontend Tickets

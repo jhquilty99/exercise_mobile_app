@@ -11,6 +11,7 @@ from typing import Dict, List, Tuple, Optional, Any
 from datetime import datetime, date, timedelta
 from dataclasses import dataclass
 import logging
+from .filter import filter_dataframe_by_timeframe
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -48,15 +49,6 @@ class WorkoutFrequencyAnalyzer:
     
     def __init__(self):
         """Initialize the analyzer."""
-        self.timeframe_filters = {
-            'Last 7 days': 7,
-            'Last 30 days': 30,
-            'Last 3 months': 90,
-            'Last 6 months': 180,
-            'Last year': 365,
-            'All time': None
-        }
-        
         self.key_metrics = {
             'Max Volume': 'max_volume',
             'Max Weight': 'max_weight',
@@ -186,38 +178,8 @@ class WorkoutFrequencyAnalyzer:
         Returns:
             DataFrame with frequency data for the specified timeframe
         """
-        if timeframe not in self.timeframe_filters:
-            raise ValueError(f"Invalid timeframe: {timeframe}")
-        
-        filtered_df = self._filter_by_timeframe(df, timeframe)
+        filtered_df = filter_dataframe_by_timeframe(df, timeframe)
         return calculate_exercise_frequency(filtered_df)
-    
-    def _filter_by_timeframe(self, df: pd.DataFrame, timeframe: str) -> pd.DataFrame:
-        """
-        Filter DataFrame by timeframe.
-        
-        Args:
-            df: DataFrame with workout data
-            timeframe: Timeframe filter
-            
-        Returns:
-            Filtered DataFrame
-        """
-        if timeframe == 'All time':
-            return df
-        
-        days = self.timeframe_filters[timeframe]
-        cutoff_date = datetime.now() - timedelta(days=days)
-        
-        # Ensure workout_date column exists and is datetime
-        if 'workout_date' in df.columns:
-            date_col = 'workout_date'
-        elif 'Workout Date' in df.columns:
-            date_col = 'Workout Date'
-        else:
-            raise ValueError("No workout date column found")
-        
-        return df[df[date_col] >= cutoff_date]
 
 
 def calculate_exercise_frequency(df: pd.DataFrame) -> pd.DataFrame:
@@ -340,9 +302,8 @@ def analyze_all_exercises(df: pd.DataFrame, key_metric: str, timeframe: str = 'A
         raise ValueError(f"Invalid key metric. Must be one of: {valid_metrics}")
     
     # Filter by timeframe if needed
-    analyzer = WorkoutFrequencyAnalyzer()
     if timeframe != 'All time':
-        df = analyzer._filter_by_timeframe(df, timeframe)
+        df = filter_dataframe_by_timeframe(df, timeframe)
     
     # Determine column names
     if 'exercise_name' in df.columns:
