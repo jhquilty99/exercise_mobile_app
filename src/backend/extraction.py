@@ -1,17 +1,16 @@
 """
 Google Sheets Data Integration Module
 
-This module provides secure connection to and extraction of data from Google Sheets
-workout tracker using OAuth2 authentication and comprehensive error handling.
+This module provides secure connection to Google Sheets, ._authenticate
+Extraction of data from Google Sheets, .extract_data
+Uses DataValidator for comprehensive data validation and cleaning.
 """
 
 import os
 import logging
 import time
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Optional, Tuple
 from dataclasses import dataclass
-from datetime import datetime
-import json
 import gspread
 from google.oauth2.service_account import Credentials
 from google.auth.exceptions import GoogleAuthError
@@ -100,138 +99,22 @@ class GoogleSheetsExtractor:
             self.stats.api_connection_status = "error"
             raise
     
-
-    
-    def _validate_sheet_structure(self, worksheet) -> List[str]:
+    def _get_column_letter(self, column_index: int) -> str:
         """
-        Validate that required columns exist in the sheet.
+        Convert column index to Excel-style column letter.
         
         Args:
-            worksheet: gspread worksheet object
+            column_index: 0-based column index
             
         Returns:
-            List of column headers
-            
-        Raises:
-            ValueError: If required columns are missing
+            Column letter (A, B, C, ..., Z, AA, AB, etc.)
         """
-        try:
-            # Get the first row as headers
-            headers = worksheet.row_values(1)
-            
-            if not headers:
-                raise ValueError("Sheet appears to be empty or has no headers")
-            
-            # Define required columns for workout data
-            required_columns = [
-                'Workout Date',
-                'Exercise Type',
-                'Exercise Name',
-                'Weight',
-                'Sets',
-                'Discrete Reps',
-                'Alternating'
-            ]
-            
-            missing_columns = [col for col in required_columns if col not in headers]
-            
-            if missing_columns:
-                raise ValueError(f"Missing required columns: {missing_columns}")
-            
-            logger.info(f"Sheet structure validated. Found columns: {headers}")
-            return headers
-            
-        except Exception as e:
-            logger.error(f"Error validating sheet structure: {e}")
-            raise
-    
-    def _clean_and_validate_data(self, data: List[List], headers: List[str]) -> pd.DataFrame:
-        """
-        Clean and validate extracted data, handling empty cells and missing data.
-        
-        Args:
-            data: Raw data from sheet
-            headers: Column headers
-            
-        Returns:
-            DataFrame with cleaned and validated records with proper data types
-        """
-        # Remove header row for processing
-        data_rows = data[1:]    
-
-        # Filter out rows missing workout date
-        data_rows = [row for row in data_rows if len(row) > 0 and row[0].strip()]  # Assuming date is first column
-        
-        if not data_rows:
-            raise ValueError("No valid data rows found after filtering missing dates")
-        
-        logger.info(f"Filtered {len(data[1:]) - len(data_rows)} rows with missing dates")
-
-        cleaned_records = []
-        errors = 0
-        
-        for row_idx, row in enumerate(data_rows, start=2):  # Start from 2 to account for header row
-            try:
-                # Pad row to match header length
-                while len(row) < len(headers):
-                    row.append("")
-                
-                # Create record dictionary
-                record = dict(zip(headers, row))
-                
-                # Validate required fields
-                required_fields = ['Workout Date', 'Exercise Name', 'Exercise Type', 'Weight', 'Sets', 'Discrete Reps']
-                if any(not record.get(field) for field in required_fields):
-                    logger.warning(f"Row {row_idx}: Missing required fields ({' or '.join(required_fields)})")
-                    errors += 1
-                    continue
-                
-                cleaned_records.append(record)
-                
-            except Exception as e:
-                logger.error(f"Row {row_idx}: Error processing row: {e}")
-                errors += 1
-                continue
-        
-        self.stats.errors_found = errors
-        
-        # Create DataFrame
-        df = pd.DataFrame(cleaned_records)
-        
-        if df.empty:
-            return df
-        
-        # Convert data types
-        try:
-            # Convert date column
-            if 'Workout Date' in df.columns:
-                df['Workout Date'] = pd.to_datetime(df['Workout Date'], errors='coerce')
-            
-            # Convert numeric columns
-            if 'Weight' in df.columns:
-                df['Weight'] = pd.to_numeric(df['Weight'], errors='coerce')
-            
-            if 'Sets' in df.columns:
-                df['Sets'] = pd.to_numeric(df['Sets'], errors='coerce').astype('Int64')  # nullable integer
-            
-            if 'Discrete Reps' in df.columns:
-                df['Discrete Reps'] = pd.to_numeric(df['Discrete Reps'], errors='coerce').astype('Int64')  # nullable integer
-            
-            # Keep string columns as object type
-            string_columns = ['Exercise Name', 'Exercise Type', 'Alternating']
-            for col in string_columns:
-                if col in df.columns:
-                    df[col] = df[col].astype('string')
-            
-            logger.info(f"DataFrame created with {len(df)} records and proper data types")
-            logger.info(f"DataFrame columns and types: {df.dtypes.to_dict()}")
-            
-        except Exception as e:
-            logger.error(f"Error converting data types: {e}")
-            # Return DataFrame with original data types if conversion fails
-            pass
-        
-        return df
+        result = ""
+        while column_index >= 0:
+            column_index, remainder = divmod(column_index, 26)
+            result = chr(65 + remainder) + result
+            column_index -= 1
+        return result
     
     def extract_data(
         self, 
@@ -273,9 +156,6 @@ class GoogleSheetsExtractor:
             
             self.stats.sheet_name = sheet_name
             
-            # Validate sheet structure
-            headers = self._validate_sheet_structure(worksheet)
-            
             # Extract data
             if range_name:
                 raw_data = worksheet.get(range_name)
@@ -285,13 +165,23 @@ class GoogleSheetsExtractor:
             if not raw_data or len(raw_data) <= 1:
                 raise ValueError("No data found in sheet or sheet is empty")
             
-            # Clean and validate data
-            df = self._clean_and_validate_data(raw_data, headers)
+            # Convert to DataFrame
+            headers = raw_data[0]
+            data_rows = raw_data[1:]
+            df = pd.DataFrame(data_rows, columns=headers)
             
             # Update statistics
-            self.stats.records_read = len(df)
+            self.stats.records_read = len(raw_data)
             self.stats.extraction_time = time.time() - start_time
-            self.stats.range_read = range_name or f"A1:{chr(65 + len(headers) - 1)}{len(raw_data)}"
+            
+            # Calculate range string
+            if range_name:
+                self.stats.range_read = range_name
+            else:
+                num_cols = len(headers)
+                num_rows = len(raw_data)
+                last_col = self._get_column_letter(num_cols - 1)
+                self.stats.range_read = f"A1:{last_col}{num_rows}"
             
             logger.info(
                 f"Successfully extracted {self.stats.records_read} records "
@@ -348,12 +238,12 @@ class GoogleSheetsExtractor:
 
 
 if __name__ == "__main__":
-    credentials_path = "C:/Users/jhqui/OneDrive/Desktop/exercise_mobile_app/google_sheets_service_account.json"
-    spreadsheet_id = "1vC6qXrz-BmviRIEcI3uU9yfW0I44iYuZF_XzEyok2Es"
-    sheet_name = "Fact Exercise 2"
+    # Example usage - replace with your actual credentials and spreadsheet details
+    credentials_path = os.getenv('GOOGLE_CREDENTIALS', 'path/to/your/credentials.json')
+    spreadsheet_id = "your_spreadsheet_id_here"
+    sheet_name = "Sheet1"
     range_name = "A1:G1000"
-    # Run example if executed directly
-    """Example of how to use the GoogleSheetsExtractor."""
+    
     try:
         # Create extractor
         extractor = GoogleSheetsExtractor(credentials_path)

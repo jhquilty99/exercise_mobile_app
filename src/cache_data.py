@@ -1,6 +1,7 @@
 import streamlit as st
 from backend.extraction import GoogleSheetsExtractor
-from backend.transformation import clean_workout_data
+from backend.validation import clean_workout_data
+from backend.transformation import derive_fields
 import logging
 
 # Configure logging
@@ -34,7 +35,7 @@ def load_workout_data():
             )
 
             df, validation_stats = clean_workout_data(df)
-
+            df = derive_fields(df)
             logger.info(f"Extracted {len(df)} records")
             logger.info(f"Stats: {extraction_stats}")
             logger.info(f"Stats: {validation_stats}")

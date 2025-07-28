@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import calendar
 from typing import Tuple
+from plotly_calplot import calplot
 
 def calculate_workout_streak(df: pd.DataFrame) -> Tuple[int, str]:
     """
@@ -15,11 +16,8 @@ def calculate_workout_streak(df: pd.DataFrame) -> Tuple[int, str]:
     Returns:
         Tuple of (current_streak, evaluation_message)
     """
-    if df.empty or 'Workout Date' not in df.columns:
-        return 0, "No workout data available"
-    
     # Get unique workout dates and sort them
-    workout_dates = pd.to_datetime(df['Workout Date']).dt.date.unique()
+    workout_dates = pd.to_datetime(df['workout_date']).dt.date.unique()
     workout_dates = sorted(workout_dates)
     
     if not workout_dates:
@@ -66,7 +64,7 @@ def create_workout_frequency_graph(df: pd.DataFrame) -> go.Figure:
     Returns:
         Plotly figure object
     """
-    if df.empty or 'Workout Date' not in df.columns:
+    if df.empty or 'workout_date' not in df.columns:
         # Create empty figure
         fig = go.Figure()
         fig.add_annotation(
@@ -78,8 +76,8 @@ def create_workout_frequency_graph(df: pd.DataFrame) -> go.Figure:
     
     # Get unique workout dates
     df_copy = df.copy()
-    df_copy['Workout Date'] = pd.to_datetime(df_copy['Workout Date'])
-    unique_workout_dates = df_copy['Workout Date'].dt.date.unique()
+    df_copy['workout_date'] = pd.to_datetime(df_copy['workout_date'])
+    unique_workout_dates = df_copy['workout_date'].dt.date.unique()
     
     if len(unique_workout_dates) == 0:
         # Create empty figure
@@ -137,76 +135,21 @@ def create_workout_frequency_graph(df: pd.DataFrame) -> go.Figure:
     
     return fig
 
-def create_workout_calendar(df: pd.DataFrame, year: int = None, month: int = None) -> go.Figure:
+def create_workout_calendar(df: pd.DataFrame, year: int = None) -> go.Figure:
     """
-    Create a calendar visualization with workout dates highlighted.
+    Create a GitHub-style contributions graph showing workout activity for an entire year.
     
     Args:
         df: DataFrame with workout data
         year: Year to display (defaults to current year)
-        month: Month to display (defaults to current month)
         
     Returns:
         Plotly figure object
     """
-    if year is None:
-        year = datetime.now().year
-    if month is None:
-        month = datetime.now().month
+    df_copy = df.copy()
     
-    # Get workout dates for the specified month
-    workout_dates = set()
-    if not df.empty and 'Workout Date' in df.columns:
-        df_copy = df.copy()
-        df_copy['Workout Date'] = pd.to_datetime(df_copy['Workout Date'])
-        month_workouts = df_copy[
-            (df_copy['Workout Date'].dt.year == year) & 
-            (df_copy['Workout Date'].dt.month == month)
-        ]
-        workout_dates = set(month_workouts['Workout Date'].dt.day.tolist())
+    # Group by workout_date and count occurrences
+    daily_counts = df_copy.groupby('workout_date').size().reset_index(name='value')
     
-    # Create calendar data
-    cal = calendar.monthcalendar(year, month)
-    month_name = calendar.month_name[month]
-    
-    # Prepare data for heatmap - create proper calendar grid
-    calendar_data = []
-    hover_text = []
-    
-    for week in cal:
-        week_data = []
-        week_hover = []
-        for day in week:
-            if day == 0:  # Empty day
-                week_data.append(0)
-                week_hover.append("")
-            else:
-                if day in workout_dates:
-                    week_data.append(2)  # Workout day
-                    week_hover.append(f"Day {day} (Workout!)")
-                else:
-                    week_data.append(1)  # Regular day
-                    week_hover.append(f"Day {day}")
-        calendar_data.append(week_data)
-        hover_text.append(week_hover)
-    
-    # Create heatmap
-    fig = go.Figure(data=go.Heatmap(
-        z=calendar_data,
-        colorscale=[[0, 'white'], [0.5, 'lightgray'], [1, 'green']],
-        showscale=False,
-        hoverinfo='text',
-        text=hover_text,
-        x=['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        y=[f"Week {i+1}" for i in range(len(calendar_data))]
-    ))
-    
-    fig.update_layout(
-        title=f"{month_name} {year} - Workout Calendar",
-        xaxis_title="",
-        yaxis_title="",
-        height=300,
-        width=600
-    )
-    
+    fig = calplot(daily_counts, x="workout_date", y="value")
     return fig

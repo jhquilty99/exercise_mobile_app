@@ -1,4 +1,4 @@
-Step-by-Step Documentation
+# Step-by-Step Documentation
 1. Describe product and iterate on this idea until its well-defined
 2. Create a product_requirements file with the help of Agent mode
 3. Ask Agent to split product requirements into frontend and backend requirements. Then ask Agent to remove any redundant information still present in product requirements.
@@ -18,7 +18,12 @@ Step-by-Step Documentation
 17. Updated BE-04 to accommodate the requirements in FE-15 and implemented both. Scrapped old BE-04 implementation and started from scratch.
 18. Implemented FE-13 and it created its own backend functions, so moved those to the backend folder. Rewrote BE-03 to make clear requirements for these backend functions (used agent to populate requirements from implemented functionality as starting point).  
 19. Implemented BE-06 by asking agent to pull out the filtering functionality from overview_statistics into its own file. Asked agent to utilize this filter function in all applicable analyses. 
-19. Add test cases for all backend functions, 
+20. Add test cases for all backend functions by asking agent to create them. Built a testing requirements document to guide the construction of consistent tests. 
+21. Asked agent to build comprehensive mermaid diagram depicting data structures, for reference during testing. Edited this manually.
+22. Devised a way to split Extraction and Transformation functionality more cleanly into Extraction, Validation, and Transformation. Moved appropriate functionality into new Validation file. Created BE-07 ticket to capture what the transformation system should actually do.  
+23. Implemented BE-07 and then updated cache_data manually to accomodate the new functions. Tab-completed changes to field names.
+24. Cleaned up backend functions by removing unneccessary data-quality checks, now that ETL is more solid. 
+25. Asked agent to improve workout_calender, making it look more like a Github contributions graph, and got it to add year selector the the frontend. 
 
 ## Backend Tickets
 
@@ -27,9 +32,11 @@ Step-by-Step Documentation
 - [X] **BE-002: Data Validation and Quality Assurance** - Validate, clean, and ensure data integrity for workout data with comprehensive validation rules and data quality reports
 
 ### Data Transformation
-- [ ] **BE-003: Exercise Performance Analytics** - Calculate comprehensive exercise performance metrics including weight progression and workout volume for strength gains and training intensity insights
+- [ ] **BE-003: Exercise Performance Analytics** - Calculate comprehensive exercise performance metrics including weight progression and workout volume for strength gains and training intensity insights by filtering to specific exercises
 - [X] **BE-004: Exercise Frequency Analytics** - Analyze exercise frequency and preferences to provide insights into workout patterns and exercise rankings
-- [ ] **BE-006: Comprehensive Data Filtering System** - Provide filtered workout data by exercise criteria and date ranges to support interactive filtering and time-based analysis
+- [X] **BE-005: Overview Statistics** - Provide information at a glance
+- [X] **BE-006: Comprehensive Data Filtering System** - Provide filtered workout data by date ranges to support interactive filtering and time-based analysis
+- [X] **BE-007: Derive Fields** - Create new columns derived from those in the sheet and validate the result. 
 
 ## Frontend Tickets
 

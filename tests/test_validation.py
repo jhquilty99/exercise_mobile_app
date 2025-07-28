@@ -16,7 +16,7 @@ import numpy as np
 from datetime import datetime, date
 from unittest.mock import patch, MagicMock
 
-from src.backend.transformation import (
+from src.backend.validation import (
     WorkoutDataValidator,
     ValidationResult,
     validate_workout_data,

@@ -12,7 +12,7 @@ def calculate_filtered_metrics(df, timeframe):
         filtered_df = filter_dataframe_by_timeframe(df, timeframe)
         
         # Calculate filtered metrics
-        filtered_workouts = filtered_df['Workout Date'].nunique()
+        filtered_workouts = filtered_df['workout_date'].nunique()
         filtered_exercises = len(filtered_df)
         
         return filtered_workouts, filtered_exercises

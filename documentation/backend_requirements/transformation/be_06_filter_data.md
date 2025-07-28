@@ -4,8 +4,8 @@
 **So that** I can support interactive filtering and time-based analysis in the frontend
 
 **Acceptance Criteria:**
-- [ ] Support relative date ranges (last 30 days, last 6 months)
-- [ ] Return filtered data efficiently
+- [X] Support relative date ranges (last 30 days, last 6 months)
+- [X] Return filtered data efficiently
 
 **Technical Requirements:**
 - Use pandas query methods for efficient filtering

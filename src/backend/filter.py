@@ -35,7 +35,7 @@ def filter_dataframe_by_timeframe(df, timeframe):
             return df
         
         # Filter data based on cutoff date
-        filtered_df = df[df['Workout Date'] >= cutoff_date]
+        filtered_df = df[df['workout_date'] >= cutoff_date]
         
         return filtered_df
         

@@ -204,7 +204,7 @@ pytest -n auto           # Parallel execution
 ## Code Review Checklist
 
 ### Test Quality
-- [ ] New functionality has corresponding tests
+- [ ] All functionality has corresponding tests
 - [ ] Tests follow naming conventions
 - [ ] Tests are properly organized and documented
 - [ ] Mock usage is appropriate and realistic

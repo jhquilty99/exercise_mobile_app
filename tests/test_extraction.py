@@ -22,7 +22,7 @@ import logging
 # Add the parent directory to the path to import the module
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from extraction import GoogleSheetsExtractor, ExtractionStats
+from src.backend.extraction import GoogleSheetsExtractor, ExtractionStats
 
 
 class TestExtractionStats(unittest.TestCase):
@@ -118,8 +118,8 @@ class TestGoogleSheetsExtractorAuthentication(unittest.TestCase):
         if os.path.exists(self.temp_credentials_file.name):
             os.unlink(self.temp_credentials_file.name)
     
-    @patch('extraction.Credentials.from_service_account_file')
-    @patch('extraction.gspread.authorize')
+    @patch('src.backend.extraction.Credentials.from_service_account_file')
+    @patch('src.backend.extraction.gspread.authorize')
     def test_authenticate_success(self, mock_authorize, mock_credentials):
         """Test successful authentication."""
         mock_credentials.return_value = Mock()
@@ -132,7 +132,7 @@ class TestGoogleSheetsExtractorAuthentication(unittest.TestCase):
         mock_credentials.assert_called_once()
         mock_authorize.assert_called_once()
     
-    @patch('extraction.Credentials.from_service_account_file')
+    @patch('src.backend.extraction.Credentials.from_service_account_file')
     def test_authenticate_google_auth_error(self, mock_credentials):
         """Test authentication failure with GoogleAuthError."""
         from google.auth.exceptions import GoogleAuthError
@@ -143,7 +143,7 @@ class TestGoogleSheetsExtractorAuthentication(unittest.TestCase):
         
         self.assertEqual(self.extractor.stats.api_connection_status, "authentication_failed")
     
-    @patch('extraction.Credentials.from_service_account_file')
+    @patch('src.backend.extraction.Credentials.from_service_account_file')
     def test_authenticate_unexpected_error(self, mock_credentials):
         """Test authentication failure with unexpected error."""
         mock_credentials.side_effect = Exception("Unexpected error")
@@ -220,8 +220,83 @@ class TestGoogleSheetsExtractorDataCleaning(unittest.TestCase):
         if os.path.exists(self.temp_credentials_file.name):
             os.unlink(self.temp_credentials_file.name)
     
-    def test_clean_and_validate_data_valid_records(self):
-        """Test cleaning valid data records."""
+    def test_handle_empty_cells_and_missing_data_valid_records(self):
+        """Test handling empty cells and missing data with valid records."""
+        headers = ['Workout Date', 'Exercise Type', 'Exercise Name', 'Weight', 'Sets', 'Discrete Reps', 'Alternating']
+        data = [
+            headers,  # Header row
+            ['2024-01-01', 'Strength', 'Bench Press', '100', '3', '10', 'No'],
+            ['2024-01-02', 'Cardio', 'Running', '0', '1', '30', 'No']
+        ]
+        
+        records = self.extractor._handle_empty_cells_and_missing_data(data, headers)
+        
+        self.assertEqual(len(records), 2)
+        self.assertEqual(self.extractor.stats.errors_found, 0)
+        self.assertIsInstance(records, list)
+        self.assertIsInstance(records[0], dict)
+    
+    def test_handle_empty_cells_and_missing_data_empty_dates_filtered(self):
+        """Test that rows with empty dates are filtered out."""
+        headers = ['Workout Date', 'Exercise Type', 'Exercise Name', 'Weight', 'Sets', 'Discrete Reps', 'Alternating']
+        data = [
+            headers,  # Header row
+            ['2024-01-01', 'Strength', 'Bench Press', '100', '3', '10', 'No'],  # Valid
+            ['', 'Strength', 'Squats', '150', '3', '8', 'No'],  # Empty date
+            ['   ', 'Cardio', 'Running', '0', '1', '30', 'No']  # Whitespace date
+        ]
+        
+        records = self.extractor._handle_empty_cells_and_missing_data(data, headers)
+        
+        self.assertEqual(len(records), 1)  # Only the valid record should remain
+    
+    def test_validate_data_constraints_valid_records(self):
+        """Test validating data constraints with valid records."""
+        records = [
+            {'Workout Date': '2024-01-01', 'Exercise Type': 'Strength', 'Exercise Name': 'Bench Press', 
+             'Weight': '100', 'Sets': '3', 'Discrete Reps': '10', 'Alternating': 'No'},
+            {'Workout Date': '2024-01-02', 'Exercise Type': 'Cardio', 'Exercise Name': 'Running', 
+             'Weight': '0', 'Sets': '1', 'Discrete Reps': '30', 'Alternating': 'No'}
+        ]
+        
+        validated_records = self.extractor._validate_data_constraints(records)
+        
+        self.assertEqual(len(validated_records), 2)
+        self.assertEqual(self.extractor.stats.errors_found, 0)
+    
+    def test_validate_data_constraints_missing_required_fields(self):
+        """Test validating data constraints with missing required fields."""
+        records = [
+            {'Workout Date': '2024-01-01', 'Exercise Type': 'Strength', 'Exercise Name': 'Bench Press', 
+             'Weight': '100', 'Sets': '3', 'Discrete Reps': '10', 'Alternating': 'No'},  # Valid
+            {'Workout Date': '2024-01-02', 'Exercise Type': '', 'Exercise Name': 'Running', 
+             'Weight': '0', 'Sets': '1', 'Discrete Reps': '30', 'Alternating': 'No'},  # Missing Exercise Type
+            {'Workout Date': '2024-01-03', 'Exercise Type': 'Strength', 'Exercise Name': '', 
+             'Weight': '100', 'Sets': '3', 'Discrete Reps': '10', 'Alternating': 'No'}  # Missing Exercise Name
+        ]
+        
+        validated_records = self.extractor._validate_data_constraints(records)
+        
+        self.assertEqual(len(validated_records), 1)  # Only the valid record should remain
+        self.assertEqual(self.extractor.stats.errors_found, 2)
+    
+    def test_coerce_data_types_conversion(self):
+        """Test that data types are properly converted."""
+        df = pd.DataFrame([
+            {'Workout Date': '2024-01-01', 'Exercise Type': 'Strength', 'Exercise Name': 'Bench Press', 
+             'Weight': '100.5', 'Sets': '3', 'Discrete Reps': '10', 'Alternating': 'No'}
+        ])
+        
+        coerced_df = self.extractor._coerce_data_types(df)
+        
+        self.assertEqual(len(coerced_df), 1)
+        self.assertIsInstance(coerced_df['Workout Date'].iloc[0], pd.Timestamp)
+        self.assertIsInstance(coerced_df['Weight'].iloc[0], float)
+        self.assertIsInstance(coerced_df['Sets'].iloc[0], pd.Int64Dtype().type)
+        self.assertIsInstance(coerced_df['Discrete Reps'].iloc[0], pd.Int64Dtype().type)
+    
+    def test_clean_and_validate_data_integration(self):
+        """Test the complete clean and validate data workflow."""
         headers = ['Workout Date', 'Exercise Type', 'Exercise Name', 'Weight', 'Sets', 'Discrete Reps', 'Alternating']
         data = [
             headers,  # Header row
@@ -234,51 +309,8 @@ class TestGoogleSheetsExtractorDataCleaning(unittest.TestCase):
         self.assertEqual(len(df), 2)
         self.assertEqual(self.extractor.stats.errors_found, 0)
         self.assertIsInstance(df, pd.DataFrame)
-    
-    def test_clean_and_validate_data_missing_required_fields(self):
-        """Test cleaning data with missing required fields."""
-        headers = ['Workout Date', 'Exercise Type', 'Exercise Name', 'Weight', 'Sets', 'Discrete Reps', 'Alternating']
-        data = [
-            headers,  # Header row
-            ['2024-01-01', 'Strength', 'Bench Press', '100', '3', '10', 'No'],  # Valid
-            ['2024-01-02', '', 'Running', '0', '1', '30', 'No'],  # Missing Exercise Type
-            ['2024-01-03', 'Strength', '', '100', '3', '10', 'No']  # Missing Exercise Name
-        ]
-        
-        df = self.extractor._clean_and_validate_data(data, headers)
-        
-        self.assertEqual(len(df), 1)  # Only the valid record should remain
-        self.assertEqual(self.extractor.stats.errors_found, 2)
-    
-    def test_clean_and_validate_data_empty_dates_filtered(self):
-        """Test that rows with empty dates are filtered out."""
-        headers = ['Workout Date', 'Exercise Type', 'Exercise Name', 'Weight', 'Sets', 'Discrete Reps', 'Alternating']
-        data = [
-            headers,  # Header row
-            ['2024-01-01', 'Strength', 'Bench Press', '100', '3', '10', 'No'],  # Valid
-            ['', 'Strength', 'Squats', '150', '3', '8', 'No'],  # Empty date
-            ['   ', 'Cardio', 'Running', '0', '1', '30', 'No']  # Whitespace date
-        ]
-        
-        df = self.extractor._clean_and_validate_data(data, headers)
-        
-        self.assertEqual(len(df), 1)  # Only the valid record should remain
-    
-    def test_clean_and_validate_data_data_type_conversion(self):
-        """Test that data types are properly converted."""
-        headers = ['Workout Date', 'Exercise Type', 'Exercise Name', 'Weight', 'Sets', 'Discrete Reps', 'Alternating']
-        data = [
-            headers,  # Header row
-            ['2024-01-01', 'Strength', 'Bench Press', '100.5', '3', '10', 'No']
-        ]
-        
-        df = self.extractor._clean_and_validate_data(data, headers)
-        
-        self.assertEqual(len(df), 1)
         self.assertIsInstance(df['Workout Date'].iloc[0], pd.Timestamp)
         self.assertIsInstance(df['Weight'].iloc[0], float)
-        self.assertIsInstance(df['Sets'].iloc[0], pd.Int64Dtype().type)
-        self.assertIsInstance(df['Discrete Reps'].iloc[0], pd.Int64Dtype().type)
 
 
 class TestGoogleSheetsExtractorDataExtraction(unittest.TestCase):
@@ -297,7 +329,7 @@ class TestGoogleSheetsExtractorDataExtraction(unittest.TestCase):
             os.unlink(self.temp_credentials_file.name)
     
     @patch.object(GoogleSheetsExtractor, '_authenticate')
-    @patch('extraction.gspread')
+    @patch('src.backend.extraction.gspread')
     def test_extract_data_success(self, mock_gspread, mock_authenticate):
         """Test successful data extraction."""
         # Mock the spreadsheet and worksheet
@@ -327,7 +359,7 @@ class TestGoogleSheetsExtractorDataExtraction(unittest.TestCase):
         self.assertGreater(stats.extraction_time, 0)
     
     @patch.object(GoogleSheetsExtractor, '_authenticate')
-    @patch('extraction.gspread')
+    @patch('src.backend.extraction.gspread')
     def test_extract_data_with_range(self, mock_gspread, mock_authenticate):
         """Test data extraction with specific range."""
         # Mock the spreadsheet and worksheet
@@ -356,7 +388,7 @@ class TestGoogleSheetsExtractorDataExtraction(unittest.TestCase):
         mock_worksheet.get.assert_called_once_with("A1:G10")
     
     @patch.object(GoogleSheetsExtractor, '_authenticate')
-    @patch('extraction.gspread')
+    @patch('src.backend.extraction.gspread')
     def test_extract_data_sheet_not_found(self, mock_gspread, mock_authenticate):
         """Test extraction fails when sheet is not found."""
         # Mock the spreadsheet
@@ -371,7 +403,7 @@ class TestGoogleSheetsExtractorDataExtraction(unittest.TestCase):
             )
     
     @patch.object(GoogleSheetsExtractor, '_authenticate')
-    @patch('extraction.gspread')
+    @patch('src.backend.extraction.gspread')
     def test_extract_data_empty_sheet(self, mock_gspread, mock_authenticate):
         """Test extraction fails when sheet is empty."""
         # Mock the spreadsheet and worksheet
@@ -413,7 +445,7 @@ class TestGoogleSheetsExtractorErrorHandling(unittest.TestCase):
             os.unlink(self.temp_credentials_file.name)
     
     @patch.object(GoogleSheetsExtractor, '_authenticate')
-    @patch('extraction.gspread')
+    @patch('src.backend.extraction.gspread')
     def test_extract_data_404_error(self, mock_gspread, mock_authenticate):
         """Test handling of 404 (not found) error."""
         from googleapiclient.errors import HttpError
@@ -434,7 +466,7 @@ class TestGoogleSheetsExtractorErrorHandling(unittest.TestCase):
         self.assertEqual(self.extractor.stats.api_connection_status, "api_error")
     
     @patch.object(GoogleSheetsExtractor, '_authenticate')
-    @patch('extraction.gspread')
+    @patch('src.backend.extraction.gspread')
     def test_extract_data_403_error(self, mock_gspread, mock_authenticate):
         """Test handling of 403 (forbidden) error."""
         from googleapiclient.errors import HttpError
@@ -471,7 +503,7 @@ class TestGoogleSheetsExtractorConnectionTest(unittest.TestCase):
             os.unlink(self.temp_credentials_file.name)
     
     @patch.object(GoogleSheetsExtractor, '_authenticate')
-    @patch('extraction.gspread')
+    @patch('src.backend.extraction.gspread')
     def test_test_connection_success(self, mock_gspread, mock_authenticate):
         """Test successful connection test."""
         # Mock the spreadsheet
@@ -484,7 +516,7 @@ class TestGoogleSheetsExtractorConnectionTest(unittest.TestCase):
         self.assertTrue(result)
     
     @patch.object(GoogleSheetsExtractor, '_authenticate')
-    @patch('extraction.gspread')
+    @patch('src.backend.extraction.gspread')
     def test_test_connection_failure(self, mock_gspread, mock_authenticate):
         """Test connection test failure."""
         # Mock connection failure
@@ -561,9 +593,9 @@ class TestGoogleSheetsExtractorIntegration(unittest.TestCase):
         if os.path.exists(self.temp_credentials_file.name):
             os.unlink(self.temp_credentials_file.name)
     
-    @patch('extraction.Credentials.from_service_account_file')
-    @patch('extraction.gspread.authorize')
-    @patch('extraction.gspread')
+    @patch('src.backend.extraction.Credentials.from_service_account_file')
+    @patch('src.backend.extraction.gspread.authorize')
+    @patch('src.backend.extraction.gspread')
     def test_complete_extraction_workflow(self, mock_gspread, mock_authorize, mock_credentials):
         """Test the complete extraction workflow from authentication to data extraction."""
         # Mock authentication

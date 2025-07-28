@@ -78,7 +78,7 @@ class WorkoutFrequencyAnalyzer:
         # Create analysis summary
         analysis_summary = {
             'unique_exercises': total_exercises,
-            'most_frequent_exercise': frequencies.iloc[0]['exercise_name'],
+            'most_frequent_exercise': frequencies.iloc[0]['detailed_exercise_name'],
             'most_frequent_count': frequencies.iloc[0]['frequency'],
             'average_frequency': frequencies['frequency'].mean(),
             'median_frequency': frequencies['frequency'].median(),
@@ -112,7 +112,7 @@ class WorkoutFrequencyAnalyzer:
         
         top_exercises = []
         for i, (_, row) in enumerate(frequencies.head(top_n).iterrows(), 1):
-            exercise_name = row['exercise_name']
+            exercise_name = row['detailed_exercise_name']
             frequency = row['frequency']
             percentage = percentages.get(exercise_name, 0.0)
             
@@ -139,7 +139,7 @@ class WorkoutFrequencyAnalyzer:
         frequencies = calculate_exercise_frequency(df)
         
         # Find the exercise in the ranking
-        exercise_mask = frequencies['exercise_name'].str.lower() == exercise_name.lower()
+        exercise_mask = frequencies['detailed_exercise_name'].str.lower() == exercise_name.lower()
         if exercise_mask.any():
             return frequencies[exercise_mask].index[0] + 1
         
@@ -191,18 +191,10 @@ def calculate_exercise_frequency(df: pd.DataFrame) -> pd.DataFrame:
         
     Returns:
         DataFrame with exercise frequencies, sorted by frequency descending
-    """
-    # Determine the exercise name column
-    if 'exercise_name' in df.columns:
-        exercise_col = 'exercise_name'
-    elif 'Exercise Name' in df.columns:
-        exercise_col = 'Exercise Name'
-    else:
-        raise ValueError("No exercise name column found")
-    
+    """    
     # Calculate frequencies
-    frequencies = df[exercise_col].value_counts().reset_index()
-    frequencies.columns = ['exercise_name', 'frequency']
+    frequencies = df['detailed_exercise_name'].value_counts().reset_index()
+    frequencies.columns = ['detailed_exercise_name', 'frequency']
     
     # Sort by frequency descending
     frequencies = frequencies.sort_values('frequency', ascending=False).reset_index(drop=True)
@@ -230,7 +222,7 @@ def rank_exercises_by_frequency(df: pd.DataFrame) -> pd.DataFrame:
     frequencies['percentage'] = (frequencies['frequency'] / total_workouts * 100).round(2)
     
     # Reorder columns
-    frequencies = frequencies[['rank', 'exercise_name', 'frequency', 'percentage']]
+    frequencies = frequencies[['rank', 'detailed_exercise_name', 'frequency', 'percentage']]
     
     return frequencies
 
@@ -250,7 +242,7 @@ def calculate_percentage_breakdown(df: pd.DataFrame) -> Dict[str, float]:
     
     percentages = {}
     for _, row in frequencies.iterrows():
-        exercise_name = row['exercise_name']
+        exercise_name = row['detailed_exercise_name']
         frequency = row['frequency']
         percentage = (frequency / total_workouts * 100)
         percentages[exercise_name] = round(percentage, 2)
@@ -273,7 +265,7 @@ def get_frequency_summary(df: pd.DataFrame) -> Dict[str, Any]:
     summary = {
         'total_exercises': len(frequencies),
         'total_workouts': frequencies['frequency'].sum(),
-        'most_frequent_exercise': frequencies.iloc[0]['exercise_name'],
+        'most_frequent_exercise': frequencies.iloc[0]['detailed_exercise_name'],
         'most_frequent_count': frequencies.iloc[0]['frequency'],
         'average_frequency': round(frequencies['frequency'].mean(), 2),
         'median_frequency': round(frequencies['frequency'].median(), 2),
@@ -302,60 +294,41 @@ def analyze_all_exercises(df: pd.DataFrame, key_metric: str, timeframe: str = 'A
         raise ValueError(f"Invalid key metric. Must be one of: {valid_metrics}")
     
     # Filter by timeframe if needed
-    if timeframe != 'All time':
-        df = filter_dataframe_by_timeframe(df, timeframe)
-    
-    # Determine column names
-    if 'exercise_name' in df.columns:
-        exercise_col = 'exercise_name'
-        weight_col = 'weight_lbs'
-        sets_col = 'sets'
-        reps_col = 'discrete_reps'
-        alternating_col = 'alternating'
-    elif 'Exercise Name' in df.columns:
-        exercise_col = 'Exercise Name'
-        weight_col = 'Weight'
-        sets_col = 'Sets'
-        reps_col = 'Discrete Reps'
-        alternating_col = 'Alternating'
-    else:
-        raise ValueError("Required columns not found in DataFrame")
+    df = filter_dataframe_by_timeframe(df, timeframe)
     
     # Calculate metrics based on key metric
     if key_metric == 'Count':
-        result = df[exercise_col].value_counts().reset_index()
-        result.columns = ['exercise_name', 'count']
+        result = df['detailed_exercise_name'].value_counts().reset_index()
+        result.columns = ['detailed_exercise_name', 'count']
         result = result.sort_values('count', ascending=False)
     
     elif key_metric == 'Max Weight':
-        result = df.groupby(exercise_col)[weight_col].max().reset_index()
-        result.columns = ['exercise_name', 'max_weight']
+        result = df.groupby('detailed_exercise_name')['weight'].max().reset_index()
+        result.columns = ['detailed_exercise_name', 'max_weight']
         result = result.sort_values('max_weight', ascending=False)
     
     elif key_metric == 'Average Reps':
-        result = df.groupby(exercise_col)[reps_col].mean().reset_index()
-        result.columns = ['exercise_name', 'avg_reps']
+        result = df.groupby('detailed_exercise_name')['reps'].mean().reset_index()
+        result.columns = ['detailed_exercise_name', 'avg_reps']
         result['avg_reps'] = result['avg_reps'].round(2)
         result = result.sort_values('avg_reps', ascending=False)
     
     elif key_metric == 'Max Volume':
         # Calculate volume: weight * sets * reps (divide by 2 for alternating exercises)
         df_copy = df.copy()
-        df_copy['volume'] = df_copy[weight_col] * df_copy[sets_col] * df_copy[reps_col]
+        df_copy['volume'] = df_copy['weight'] * df_copy['sets'] * df_copy['reps']
         
-        # Adjust for alternating exercises
-        if alternating_col in df_copy.columns:
-            alternating_mask = df_copy[alternating_col] == True
-            df_copy.loc[alternating_mask, 'volume'] = df_copy.loc[alternating_mask, 'volume'] / 2
+        alternating_mask = df_copy['alternating'] == True
+        df_copy.loc[alternating_mask, 'volume'] = df_copy.loc[alternating_mask, 'volume'] * 2
         
-        result = df_copy.groupby(exercise_col)['volume'].max().reset_index()
-        result.columns = ['exercise_name', 'max_volume']
+        result = df_copy.groupby('detailed_exercise_name')['volume'].max().reset_index()
+        result.columns = ['detailed_exercise_name', 'max_volume']
         result = result.sort_values('max_volume', ascending=False)
     
     # Add ranking
     result['rank'] = range(1, len(result) + 1)
     
     # Reorder columns
-    result = result[['rank', 'exercise_name', result.columns[1]]]
+    result = result[['rank', 'detailed_exercise_name', result.columns[1]]]
     
     return result

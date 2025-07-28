@@ -33,6 +33,14 @@ def render_workout_analysis_page(df: pd.DataFrame):
     # Calendar section
     st.subheader("Workout Calendar")
     
+    # Year selector
+    current_year = datetime.now().year
+    selected_year = st.selectbox(
+        "Select Year",
+        range(current_year - 2, current_year + 1),
+        index=2  # Default to current year
+    )
+    
     # Display calendar
-    calendar_fig = create_workout_calendar(df)
+    calendar_fig = create_workout_calendar(df, year=selected_year)
     st.plotly_chart(calendar_fig, use_container_width=True)
