@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import calendar
-from backend.workout_statistics import calculate_workout_streak, create_workout_frequency_graph, create_workout_calendar
+from backend.workout_statistics import get_current_workout_streak, create_workout_frequency_graph, create_workout_calendar
 
 
 def render_workout_analysis_page(df: pd.DataFrame):
@@ -17,7 +17,7 @@ def render_workout_analysis_page(df: pd.DataFrame):
     st.write("Welcome to your workout analysis dashboard! This page helps you evaluate your workout regiment over time with detailed insights into your fitness patterns.")
     
     # Calculate and display current streak
-    current_streak = calculate_workout_streak(df)
+    current_streak = get_current_workout_streak(df)
     
     st.subheader("Current Streak")
     st.metric(

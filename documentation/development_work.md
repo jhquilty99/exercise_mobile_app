@@ -24,6 +24,7 @@
 23. Implemented BE-07 and then updated cache_data manually to accomodate the new functions. Tab-completed changes to field names.
 24. Cleaned up backend functions by removing unneccessary data-quality checks, now that ETL is more solid. 
 25. Asked agent to improve workout_calender, making it look more like a Github contributions graph, and got it to add year selector the the frontend. 
+21. Asked agent to ensure all tests met the testing requirements. 
 
 ## Backend Tickets
 

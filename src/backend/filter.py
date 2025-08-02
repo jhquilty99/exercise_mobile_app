@@ -13,6 +13,10 @@ def filter_dataframe_by_timeframe(df, timeframe):
         pd.DataFrame: Filtered dataframe based on the timeframe
     """
     try:
+        # Handle None dataframe
+        if df is None:
+            return pd.DataFrame()
+        
         # For "All Time", return unfiltered dataframe
         if timeframe == "All time":
             return df
@@ -41,4 +45,7 @@ def filter_dataframe_by_timeframe(df, timeframe):
         
     except Exception as e:
         # Return empty dataframe with same columns if there's an error
-        return pd.DataFrame(columns=df.columns)
+        if df is not None:
+            return pd.DataFrame(columns=df.columns)
+        else:
+            return pd.DataFrame()

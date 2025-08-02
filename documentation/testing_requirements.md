@@ -25,6 +25,21 @@ Testing standards for the Exercise Mobile App to ensure consistent, reliable tes
 
 ## Test Organization Standards
 
+### Runnings Tests
+All commands need to be run in the virtual env in order to work
+
+Use this command to run a particular test
+```powershell
+.venv\Scripts\activate;
+python -m pytest tests/<test_file>.py -v
+```
+
+Use this command to run pytest 
+```powershell
+.venv\Scripts\activate;
+python -m pytest tests/<test_file>.py --cov=<file_to_test_coverage> --cov-report=term-missing
+```
+
 ### File Structure
 ```
 src/backend/tests/

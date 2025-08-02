@@ -16,12 +16,12 @@ from unittest.mock import Mock
 def sample_workout_data():
     """Standard sample workout data for tests."""
     return pd.DataFrame({
-        'exercise_name': ['Bench Press', 'Squat', 'Deadlift', 'Bench Press', 'Squat', 'Bench Press'],
-        'weight_lbs': [135, 185, 225, 145, 195, 155],
+        'detailed_exercise_name': ['Bench Press', 'Squat', 'Deadlift', 'Bench Press', 'Squat', 'Bench Press'],
+        'weight': [135, 185, 225, 145, 195, 155],
         'sets': [3, 3, 3, 3, 3, 3],
-        'discrete_reps': [10, 8, 5, 12, 6, 11],
+        'reps': [10, 8, 5, 12, 6, 11],
         'alternating': [False, False, False, False, False, False],
-        'Workout Date': [
+        'workout_date': [
             datetime.now() - timedelta(days=1),
             datetime.now() - timedelta(days=2),
             datetime.now() - timedelta(days=3),
@@ -36,12 +36,12 @@ def sample_workout_data():
 def sample_workout_data_alternating():
     """Sample workout data with alternating exercises."""
     return pd.DataFrame({
-        'exercise_name': ['Dumbbell Curl', 'Dumbbell Curl', 'Bench Press'],
-        'weight_lbs': [25, 30, 135],
+        'detailed_exercise_name': ['Dumbbell Curl', 'Dumbbell Curl', 'Bench Press'],
+        'weight': [25, 30, 135],
         'sets': [3, 3, 3],
-        'discrete_reps': [12, 10, 10],
+        'reps': [12, 10, 10],
         'alternating': [True, True, False],
-        'Workout Date': [
+        'workout_date': [
             datetime.now() - timedelta(days=1),
             datetime.now() - timedelta(days=2),
             datetime.now() - timedelta(days=3)
@@ -53,12 +53,12 @@ def sample_workout_data_alternating():
 def sample_workout_data_with_dates():
     """Sample workout data with various dates for timeframe testing."""
     return pd.DataFrame({
-        'exercise_name': ['Bench Press', 'Squat', 'Deadlift', 'Bench Press'],
-        'weight_lbs': [135, 185, 225, 145],
+        'detailed_exercise_name': ['Bench Press', 'Squat', 'Deadlift', 'Bench Press'],
+        'weight': [135, 185, 225, 145],
         'sets': [3, 3, 3, 3],
-        'discrete_reps': [10, 8, 5, 12],
+        'reps': [10, 8, 5, 12],
         'alternating': [False, False, False, False],
-        'Workout Date': [
+        'workout_date': [
             datetime.now() - timedelta(days=1),  # Recent
             datetime.now() - timedelta(days=5),  # Recent
             datetime.now() - timedelta(days=10), # Recent
@@ -74,12 +74,12 @@ def large_workout_dataset():
     exercises = ['Bench Press', 'Squat', 'Deadlift', 'Overhead Press', 'Row', 'Pull-up', 'Dip']
     
     return pd.DataFrame({
-        'exercise_name': np.random.choice(exercises, n_records),
-        'weight_lbs': np.random.randint(50, 500, n_records),
+        'detailed_exercise_name': np.random.choice(exercises, n_records),
+        'weight': np.random.randint(50, 500, n_records),
         'sets': np.random.randint(1, 5, n_records),
-        'discrete_reps': np.random.randint(5, 20, n_records),
+        'reps': np.random.randint(5, 20, n_records),
         'alternating': np.random.choice([True, False], n_records),
-        'Workout Date': [
+        'workout_date': [
             datetime.now() - timedelta(days=i) for i in range(n_records)
         ]
     })
@@ -115,12 +115,12 @@ def mock_file_system():
 def sample_invalid_data():
     """Sample data with various invalid inputs for testing error handling."""
     return pd.DataFrame({
-        'exercise_name': ['Bench Press', 'Squat', None, '', '   '],
-        'weight_lbs': [135, -185, np.nan, float('inf'), float('-inf')],
+        'detailed_exercise_name': ['Bench Press', 'Squat', None, '', '   '],
+        'weight': [135, -185, np.nan, float('inf'), float('-inf')],
         'sets': [3, 0, -3, np.nan, 999999],
-        'discrete_reps': [10, -8, 0, np.nan, 1000],
+        'reps': [10, -8, 0, np.nan, 1000],
         'alternating': [False, False, None, True, False],
-        'Workout Date': [
+        'workout_date': [
             datetime.now() - timedelta(days=1),
             datetime.now() - timedelta(days=2),
             None,
@@ -134,18 +134,18 @@ def sample_invalid_data():
 def sample_malicious_data():
     """Sample data with malicious inputs for security testing."""
     return pd.DataFrame({
-        'exercise_name': [
+        'detailed_exercise_name': [
             "'; DROP TABLE exercises; --",
             "<script>alert('xss')</script>",
             "../../../etc/passwd",
             "javascript:alert('xss')",
             "'; SELECT * FROM users; --"
         ],
-        'weight_lbs': [135, 185, 225, 145, 155],
+        'weight': [135, 185, 225, 145, 155],
         'sets': [3, 3, 3, 3, 3],
-        'discrete_reps': [10, 8, 5, 12, 11],
+        'reps': [10, 8, 5, 12, 11],
         'alternating': [False, False, False, False, False],
-        'Workout Date': [
+        'workout_date': [
             datetime.now() - timedelta(days=1),
             datetime.now() - timedelta(days=2),
             datetime.now() - timedelta(days=3),
@@ -159,12 +159,12 @@ def sample_malicious_data():
 def sample_edge_case_data():
     """Sample data with edge cases for boundary testing."""
     return pd.DataFrame({
-        'exercise_name': ['A', 'B', 'C', 'D', 'E'],
-        'weight_lbs': [0, 1, 999999, 2**31 - 1, 2**63 - 1],
+        'detailed_exercise_name': ['A', 'B', 'C', 'D', 'E'],
+        'weight': [0, 1, 999999, 2**31 - 1, 2**63 - 1],
         'sets': [0, 1, 999, 2**31 - 1, 2**63 - 1],
-        'discrete_reps': [0, 1, 999, 2**31 - 1, 2**63 - 1],
+        'reps': [0, 1, 999, 2**31 - 1, 2**63 - 1],
         'alternating': [False, True, False, True, False],
-        'Workout Date': [
+        'workout_date': [
             datetime.now() - timedelta(days=0),  # Today
             datetime.now() - timedelta(days=1),  # Yesterday
             datetime.now() - timedelta(days=365),  # One year ago
@@ -178,12 +178,12 @@ def sample_edge_case_data():
 def sample_single_exercise_data():
     """Sample data with only one exercise type."""
     return pd.DataFrame({
-        'exercise_name': ['Bench Press', 'Bench Press', 'Bench Press'],
-        'weight_lbs': [135, 145, 155],
+        'detailed_exercise_name': ['Bench Press', 'Bench Press', 'Bench Press'],
+        'weight': [135, 145, 155],
         'sets': [3, 3, 3],
-        'discrete_reps': [10, 12, 11],
+        'reps': [10, 12, 11],
         'alternating': [False, False, False],
-        'Workout Date': [
+        'workout_date': [
             datetime.now() - timedelta(days=1),
             datetime.now() - timedelta(days=2),
             datetime.now() - timedelta(days=3)
@@ -195,8 +195,8 @@ def sample_single_exercise_data():
 def sample_empty_data():
     """Sample empty DataFrame for testing empty data handling."""
     return pd.DataFrame(columns=[
-        'exercise_name', 'weight_lbs', 'sets', 'discrete_reps', 
-        'alternating', 'Workout Date'
+        'detailed_exercise_name', 'weight', 'sets', 'reps', 
+        'alternating', 'workout_date'
     ])
 
 
@@ -204,12 +204,12 @@ def sample_empty_data():
 def sample_minimal_data():
     """Sample minimal data with single record."""
     return pd.DataFrame({
-        'exercise_name': ['Bench Press'],
-        'weight_lbs': [135],
+        'detailed_exercise_name': ['Bench Press'],
+        'weight': [135],
         'sets': [3],
-        'discrete_reps': [10],
+        'reps': [10],
         'alternating': [False],
-        'Workout Date': [datetime.now()]
+        'workout_date': [datetime.now()]
     })
 
 
@@ -217,12 +217,12 @@ def sample_minimal_data():
 def sample_dataframe():
     """Standard sample DataFrame for testing (alias for sample_workout_data)."""
     return pd.DataFrame({
-        'exercise_name': ['Bench Press', 'Squat', 'Deadlift', 'Bench Press', 'Squat', 'Bench Press'],
-        'weight_lbs': [135, 185, 225, 145, 195, 155],
+        'detailed_exercise_name': ['Bench Press', 'Squat', 'Deadlift', 'Bench Press', 'Squat', 'Bench Press'],
+        'weight': [135, 185, 225, 145, 195, 155],
         'sets': [3, 3, 3, 3, 3, 3],
-        'discrete_reps': [10, 8, 5, 12, 6, 11],
+        'reps': [10, 8, 5, 12, 6, 11],
         'alternating': [False, False, False, False, False, False],
-        'Workout Date': [
+        'workout_date': [
             datetime.now() - timedelta(days=1),
             datetime.now() - timedelta(days=2),
             datetime.now() - timedelta(days=3),
