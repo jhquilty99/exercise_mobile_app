@@ -15,6 +15,11 @@
 - Use non-technical language in error messages
 - Show error context when helpful
 - Offer contact information for support
+- Show loading spinners during data loading
+- Display progress bars for long operations
+- Provide clear error messages for failures
+- Show fallback content for missing data
+- Include retry options for failed operations
 
 **Technical Notes:**
 - Use `st.spinner()` for loading states
@@ -25,3 +30,7 @@
 - Implement error categorization
 - Use user-friendly language
 - Include troubleshooting steps
+- Use `st.spinner()`, `st.progress()`, and `st.error()`
+- Implement try-catch blocks for data operations
+- Create user-friendly error messages
+- Handle network timeouts gracefully

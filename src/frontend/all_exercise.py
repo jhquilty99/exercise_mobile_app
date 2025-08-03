@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 from backend.all_exercise_statistics import analyze_all_exercises
 
 def render_all_exercise_analysis_page(df):
@@ -61,12 +62,48 @@ def render_all_exercise_analysis_page(df):
             display_df = analysis_results.copy()
             display_df.columns = ['Rank', 'Exercise Name', selected_metric]
             
+            # Create bar chart for top 10 exercises
+            st.subheader("📈 Top 10 Exercises Visualization")
+            
+            # Get top 10 exercises
+            top_10_df = analysis_results.head(10).copy()
+            
+            # Create the bar chart
+            fig = px.bar(
+                top_10_df,
+                x='detailed_exercise_name',
+                y=top_10_df.columns[2],  # The metric column (3rd column)
+                title=f"Top 10 Exercises by {selected_metric} ({selected_timeframe})",
+                labels={
+                    'detailed_exercise_name': 'Exercise Name',
+                    top_10_df.columns[2]: selected_metric
+                },
+                color='rank',
+                color_continuous_scale='viridis',
+                text=top_10_df.columns[2]  # Show values on bars
+            )
+            
+            # Customize the chart
+            fig.update_layout(
+                xaxis_title="Exercise Name",
+                yaxis_title=selected_metric,
+                showlegend=False,
+                height=500
+            )
+            
+            # Rotate x-axis labels for better readability
+            fig.update_xaxes(tickangle=45)
+            
+            # Display the chart
+            st.plotly_chart(fig, use_container_width=True)
+
             # Display the table
             st.dataframe(
                 display_df,
                 use_container_width=True,
                 hide_index=True
             )
+            
             
         else:
             st.warning("No data available for the selected timeframe and metric combination.")

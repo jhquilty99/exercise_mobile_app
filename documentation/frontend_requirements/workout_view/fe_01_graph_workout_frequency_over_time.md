@@ -4,12 +4,12 @@
 **So that** I can track my training frequency
 
 **Acceptance Criteria:**
-- Calculate 30-day rolling window of workout counts
-- Display line graph with smooth trend
-- X-axis: workout_date
-- Y-axis: count of workouts in past 30 days
-- Include chart title and clear labeling
-- Show trend direction (improving/declining)
+- [X] Calculate 30-day rolling window of workout counts
+- [X] Display line graph with smooth trend
+    - X-axis: workout_date
+    - Y-axis: count of workouts in past 30 days
+- [X] Include chart title and clear labeling
+- [X] Show trend direction (improving/declining)
 
 **Technical Notes:**
 - Use pandas rolling window calculations

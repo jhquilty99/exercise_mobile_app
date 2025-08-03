@@ -25,6 +25,8 @@
 24. Cleaned up backend functions by removing unneccessary data-quality checks, now that ETL is more solid. 
 25. Asked agent to improve workout_calender, making it look more like a Github contributions graph, and got it to add year selector the the frontend. 
 21. Asked agent to ensure all tests met the testing requirements. 
+22. Manually reevaluated all user stories, rewriting, removing, and reorganizing where necessary. 
+23. Asked agent to build a backend ticket that would support the work in FE-13. 
 
 ## Backend Tickets
 
@@ -33,7 +35,7 @@
 - [X] **BE-002: Data Validation and Quality Assurance** - Validate, clean, and ensure data integrity for workout data with comprehensive validation rules and data quality reports
 
 ### Data Transformation
-- [ ] **BE-003: Exercise Performance Analytics** - Calculate comprehensive exercise performance metrics including weight progression and workout volume for strength gains and training intensity insights by filtering to specific exercises
+- [X] **BE-003: Workout Analytics** - Calculate comprehensive workout analytics such as the workout streak, 30-day rolling workouts, and workout calender. 
 - [X] **BE-004: Exercise Frequency Analytics** - Analyze exercise frequency and preferences to provide insights into workout patterns and exercise rankings
 - [X] **BE-005: Overview Statistics** - Provide information at a glance
 - [X] **BE-006: Comprehensive Data Filtering System** - Provide filtered workout data by date ranges to support interactive filtering and time-based analysis
@@ -45,24 +47,22 @@
 - [ ] **FE-002: Basic Accessibility Support** - Ensure the application is accessible with sufficient color contrast, keyboard navigation, and screen reader compatibility
 - [X] **FE-003: Application Layout and Navigation** - Create a clean, organized dashboard with clear navigation and sidebar menu for easy data viewing
 - [ ] **FE-004: Efficient Data Loading and User-Friendly Error Handling** - Load data efficiently with clear error messages, loading indicators, and user-friendly troubleshooting
-- [ ] **FE-005: Loading States and Error Handling** - Provide clear feedback during data operations with loading spinners, progress bars, and retry options
 - [X] **FE-011: Color Scheme Implementation** - Apply professional red and white color scheme with defined typography throughout the application
-- [ ] **FE-010: Date Range Filter** - Provide date range filtering with slider/picker to focus on specific time periods across all visualizations 
 
 ### Overview Tab
 - [X] **FE-012: Overview Tab Layout** - Create the elements to display all overview information
-- [ ] **FE-008: Most Frequent Workouts Display** - Show ranked list of exercises by frequency with bar chart visualization and percentage breakdown
-- [ ] **FE-009: Maximum Weight Per Exercise** - Display personal records summary table with maximum weights per exercise and progress indicators
+
 
 ### All Exercise Analysis Tab
 - [X] **FE-015: All Exercise Analysis Tab Layout** - Create the elements to display all exercise analysis information
+- [?] **FE-008: Most Frequent Workouts Display** - Show ranked list of exercises by frequency with bar chart visualization and percentage breakdown
+- [?] **FE-009: Maximum Weight Per Exercise** - Display personal records summary table with maximum weights per exercise and progress indicators
 
 ### Specific Exercise Analysis Tab
 - [ ] **FE-013: Specific Exercise Analysis Tab Layout** - Create the elements to display analytics for one exercise at a time
-- [ ] **FE-006: Interactive Exercise Filter with Real-time Chart Updates** - Provide dropdown/multi-select exercise filtering with immediate chart updates and loading indicators
 - [ ] **FE-007: Weight Progress Line Chart** - Create interactive line chart showing weight progression over time with color-coded exercise lines and trend analysis
 
 ### Workout Analysis Tab
 - [X] **FE-014: Workout Analysis Tab Layout** - Create the elements to display all workout analysis information
-- [ ] **FE-001: 30-Day Rolling Workout Volume Chart** - Display workout consistency over time with a 30-day rolling window line graph showing training frequency trends
+- [X] **FE-001: 30-Day Rolling Workout Volume Chart** - Display workout consistency over time with a 30-day rolling window line graph showing training frequency trends
 

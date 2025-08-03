@@ -19,6 +19,7 @@
     - Last year
     - All time
 - [X] Displays a table with the key metric calculated for each exercise 
+- [X] Bar chart depicting the key metric for the top 10 exercises. 
 
 
 **Technical Requirements:**
@@ -31,5 +32,6 @@
 - Informative insights showing the top-performing exercise
 - Responsive table display with proper column formatting
 - Helpful error messages if data issues occur
+- Use Plotly bar chart
 
 **Implementation:**

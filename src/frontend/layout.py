@@ -2,6 +2,7 @@ import streamlit as st
 from frontend.overview import render_overview_page
 from frontend.all_exercise import render_all_exercise_analysis_page
 from frontend.workout import render_workout_analysis_page
+from frontend.specific_exercise import render_specific_exercise_analysis_page
 #from frontend.specific_exercise_tab.specific_exercise import render_weight_progress_page
 #from frontend.all_exercises_tab.all_exercises import render_summary_metrics_page
 
@@ -30,7 +31,7 @@ def create_dashboard_layout(df):
     with st.sidebar:
         page = st.radio(
             "Choose a section:",
-            ["Overview", "All Exercise Analysis", "Workout Analysis"]
+            ["Overview", "All Exercise Analysis", "Workout Analysis", "Specific Exercise Analysis"]
         )
     
     # Display content based on selected page
@@ -42,6 +43,9 @@ def create_dashboard_layout(df):
         
     elif page == "Workout Analysis":
         render_workout_analysis_page(df)
+        
+    elif page == "Specific Exercise Analysis":
+        render_specific_exercise_analysis_page(df)
         
     #elif page == "Specific Exercise":
     #    render_weight_progress_page(df)
